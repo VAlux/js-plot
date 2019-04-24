@@ -1,24 +1,24 @@
-var gridSize = 50;
-var tickLength = 3;
-var tickTextOffset = 3;
-var tickTextMaxWidth = 15;
+const gridSize = 50;
+const tickLength = 3;
+const tickTextOffset = 3;
+const tickTextMaxWidth = 15;
 
-var font = "9px Arial";
-var axisColor = "#000000";
-var tickColor = "#000000";
-var gridColor = "#e9e9e9";
-var crosshairColor = "#e5e5e5";
+const font = "9px Arial";
+const axisColor = "#000000";
+const tickColor = "#000000";
+const gridColor = "#e9e9e9";
+const crosshairColor = "#e5e5e5";
 
-var canvas = document.getElementById("plot-canvas");
-var context = canvas.getContext("2d");
-var canvasWidth = canvas.width;
-var canvasHeight = canvas.height;
+const canvas = document.getElementById("plot-canvas");
+const context = canvas.getContext("2d");
+const canvasWidth = canvas.width;
+const canvasHeight = canvas.height;
 
-var xAxisGridLinesAmount = Math.floor(canvasWidth / gridSize);
-var yAxisGridLinesAmount = Math.floor(canvasHeight / gridSize);
+const xAxisGridLinesAmount = Math.floor(canvasWidth / gridSize);
+const yAxisGridLinesAmount = Math.floor(canvasHeight / gridSize);
 
-var xAxisGridOrigin = xAxisGridLinesAmount / 2;
-var yAxisGridOrigin = yAxisGridLinesAmount / 2;
+const xAxisGridOrigin = xAxisGridLinesAmount / 2;
+const yAxisGridOrigin = yAxisGridLinesAmount / 2;
 
 var mousePosition = { x: 0, y: 0 };
 
