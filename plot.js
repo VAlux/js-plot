@@ -126,16 +126,17 @@ var increment = offset;
 
 function drawFunctions(discretizationStep) {
   for (var x = -xAxisGridOrigin; x <= xAxisGridOrigin; x += discretizationStep) {
-    functionIteration(arg => 2 * Math.PI * (Math.sin(arg * offset) * Math.cos(arg * offset)), x, discretizationStep);
-    functionIteration(arg => Math.tan(arg * offset), x, discretizationStep);
-    offset += increment;
+    for (var y = -yAxisGridOrigin; y <= yAxisGridOrigin; y += discretizationStep) {
+      functionIteration((x, y) => 2 * Math.PI * (Math.sin(x * offset) * Math.cos(y * offset)), x, y, discretizationStep);
+      offset += increment;
+    }
   }
 
-  function functionIteration(func, x, step) {
+  function functionIteration(func, x, y, step) {
     context.beginPath();
     context.lineWidth = 2;
-    context.moveTo(x * gridSize, func(x) * gridSize);
-    context.lineTo((x + step) * gridSize, func(x + step) * gridSize);
+    context.moveTo(x * gridSize, func(x, y) * gridSize);
+    context.lineTo((x + step) * gridSize, func(x + step, y + step) * gridSize);
     context.stroke();
   }
 }
@@ -153,7 +154,7 @@ function draw() {
   drawAxis(yAxisGridLinesAmount, yAxisGridOrigin, false);
   drawAxisTicks(xAxisGridOrigin, true);
   drawAxisTicks(yAxisGridOrigin, false);
-  drawFunctions(0.1);
+  drawFunctions(2);
   drawCrosshair();
 
   window.requestAnimationFrame(draw);
