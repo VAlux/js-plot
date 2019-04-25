@@ -1,6 +1,7 @@
 const gridSize = 50;
 const tickLength = 3;
 const tickTextOffset = 3;
+const lastGridLineOffset = 0.5;
 const tickTextMaxWidth = 15;
 
 const font = "9px Arial";
@@ -32,90 +33,70 @@ function translateCanvasOrigin() {
   context.translate(xAxisGridOrigin * gridSize, yAxisGridOrigin * gridSize);
 }
 
-function obtainStrokeStyle(axisOrigin, currentIteration) {
-  if (currentIteration === axisOrigin) {
-    return axisColor;
-  } else {
-    return gridColor;
-  }
-}
-
-function drawXAxis() {
-  for (var i = -xAxisGridLinesAmount; i <= xAxisGridLinesAmount; i++) {
+function drawAxis(gridLinesAmount, axisOrigin, isHorizontal) {
+  for (var i = -gridLinesAmount; i <= gridLinesAmount; i++) {
     context.beginPath();
     context.lineWidth = 1;
-
     context.strokeStyle = obtainStrokeStyle(0, i);
 
-    if (i === xAxisGridLinesAmount) {
-      const y = gridSize * i + 0.5;
-      context.moveTo(-xAxisGridOrigin * gridSize, y);
+    const offset = obtainGridLineOffset(i, gridLinesAmount)
+
+    if (isHorizontal) {
+      const y = gridSize * i + offset;
+      context.moveTo(-axisOrigin * gridSize, y);
       context.lineTo(canvasWidth, y);
     } else {
-      const y = gridSize * i;
-      context.moveTo(-xAxisGridOrigin * gridSize, y);
-      context.lineTo(canvasWidth, y);
-    }
-
-    context.stroke();
-  }
-}
-
-function drawYAxis() {
-  for (var i = -yAxisGridLinesAmount; i <= yAxisGridLinesAmount; i++) {
-    context.beginPath();
-    context.lineWidth = 1;
-
-    context.strokeStyle = obtainStrokeStyle(0, i);
-
-    if (i === yAxisGridLinesAmount) {
-      const x = gridSize * i - 0.5;
-      context.moveTo(x, -yAxisGridOrigin * gridSize);
-      context.lineTo(x, canvasHeight);
-    } else {
-      const x = gridSize * i;
-      context.moveTo(x, -yAxisGridOrigin * gridSize);
+      const x = gridSize * i - offset;
+      context.moveTo(x, -axisOrigin * gridSize);
       context.lineTo(x, canvasHeight);
     }
 
     context.stroke();
   }
-}
 
-function drawXAxisTicks() {
-  for (var i = -xAxisGridOrigin; i <= xAxisGridOrigin; i++) {
-    context.beginPath();
-    context.lineWidth = 1;
-    context.strokeStyle = tickColor;
-
-    var x = i * gridSize;
-    context.moveTo(x, -tickLength);
-    context.lineTo(x, tickLength);
-    context.stroke();
-
-    if (i !== 0) {
-      context.font = font;
-      context.textAlign = "start";
-      context.fillText(i, x, -tickTextOffset, tickTextMaxWidth);
+  function obtainStrokeStyle(axisOrigin, currentIteration) {
+    if (currentIteration === axisOrigin) {
+      return axisColor;
+    } else {
+      return gridColor;
     }
+  }
+
+  function obtainGridLineOffset(iteration, linesAmount) {
+    if (iteration === linesAmount) {
+      return lastGridLineOffset; // last grid line should be offsetted.
+    }
+  
+    return 0;
   }
 }
 
-function drawYAxisTicks() {
-  for (var i = -yAxisGridOrigin; i <= yAxisGridOrigin; i++) {
+function drawAxisTicks(axisOrigin, isHorizontal) {
+  for (var i = -axisOrigin; i <= axisOrigin; i++) {
     context.beginPath();
     context.lineWidth = 1;
     context.strokeStyle = tickColor;
+    context.font = font;
 
-    var y = i * gridSize;
-    context.moveTo(-tickLength, y);
-    context.lineTo(tickLength, y);
-    context.stroke();
-
-    if (i !== 0) {
-      context.font = font;
-      context.textAlign = "end";
-      context.fillText(i, -tickTextOffset, y, tickTextMaxWidth);
+    const scaledEndPoint = i * gridSize;
+    if (isHorizontal) {
+      context.moveTo(scaledEndPoint, -tickLength);
+      context.lineTo(scaledEndPoint, tickLength);
+      context.stroke();
+  
+      if (i !== 0) {
+        context.textAlign = "start";
+        context.fillText(i, scaledEndPoint, -tickTextOffset, tickTextMaxWidth);
+      }
+    } else {
+      context.moveTo(-tickLength, scaledEndPoint);
+      context.lineTo(tickLength, scaledEndPoint);
+      context.stroke();
+  
+      if (i !== 0) {
+        context.textAlign = "end";
+        context.fillText(i, -tickTextOffset, scaledEndPoint, tickTextMaxWidth);
+      }
     }
   }
 }
@@ -124,12 +105,15 @@ function drawCrosshair() {
   context.beginPath();
   context.lineWidth = 1;
   context.strokeStyle = crosshairColor;
+
   context.moveTo(-xAxisGridOrigin * gridSize, mousePosition.y);
   context.lineTo(xAxisGridOrigin * gridSize, mousePosition.y);
   context.stroke();
+
   context.moveTo(mousePosition.x, -yAxisGridOrigin * gridSize);
   context.lineTo(mousePosition.x, yAxisGridOrigin * gridSize);
   context.stroke();
+
   context.font = font;
   context.textAlign = "end";
   context.fillText(`x ${mousePosition.x} y ${mousePosition.y}`, mousePosition.x, mousePosition.y);
@@ -141,11 +125,9 @@ var offset = 0.00005;
 var increment = offset;
 
 function drawFunctions(discretizationStep) {
-  for (var x = -xAxisGridOrigin;x <= xAxisGridOrigin; x += discretizationStep) {
-    functionIteration(arg => Math.sin(arg * offset), x, discretizationStep);
-    functionIteration(arg => Math.cos(arg * offset), x, discretizationStep);
+  for (var x = -xAxisGridOrigin; x <= xAxisGridOrigin; x += discretizationStep) {
+    functionIteration(arg => 2 * Math.PI * (Math.sin(arg * offset) * Math.cos(arg * offset)), x, discretizationStep);
     functionIteration(arg => Math.tan(arg * offset), x, discretizationStep);
-    functionIteration(arg => Math.atan(arg * offset), x, discretizationStep);
     offset += increment;
   }
 
@@ -162,16 +144,15 @@ function drawFunctions(discretizationStep) {
 function calculateMouseRelativePositionInCanvas(e) {
   mousePosition.x = e.clientX + (document.documentElement.scrollLeft || document.body.scrollLeft) - canvas.offsetLeft - xAxisGridOrigin * gridSize;
   mousePosition.y = e.clientY + (document.documentElement.scrollTop || document.body.scrollTop) - canvas.offsetTop - yAxisGridOrigin * gridSize;
-  console.log("mouse position: " + JSON.stringify(mousePosition));
 }
 
 function draw() {
   context.clearRect(-xAxisGridOrigin * gridSize, -yAxisGridOrigin * gridSize, canvasWidth, canvasHeight);
 
-  drawXAxis();
-  drawYAxis();
-  drawXAxisTicks();
-  drawYAxisTicks();
+  drawAxis(xAxisGridLinesAmount, xAxisGridOrigin, true);
+  drawAxis(yAxisGridLinesAmount, yAxisGridOrigin, false);
+  drawAxisTicks(xAxisGridOrigin, true);
+  drawAxisTicks(yAxisGridOrigin, false);
   drawFunctions(0.1);
   drawCrosshair();
 
