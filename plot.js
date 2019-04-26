@@ -5,10 +5,11 @@ const lastGridLineOffset = 0.5;
 const tickTextMaxWidth = 15;
 
 const font = "9px Arial";
-const axisColor = "#000000";
-const tickColor = "#000000";
-const gridColor = "#e9e9e9";
-const crosshairColor = "#e5e5e5";
+const axisColor = "#ffffff";
+const fontColor = "#ffffff"
+const tickColor = "#ffffff";
+const gridColor = "#f9f9f9";
+const crosshairColor = "#f9f9f9";
 
 const canvas = document.getElementById("plot-canvas");
 const context = canvas.getContext("2d");
@@ -77,6 +78,7 @@ function drawAxisTicks(axisOrigin, isHorizontal) {
     context.lineWidth = 1;
     context.strokeStyle = tickColor;
     context.font = font;
+    context.fillStyle = fontColor;
 
     const scaledEndPoint = i * gridSize;
     if (isHorizontal) {
@@ -121,7 +123,7 @@ function drawCrosshair() {
 
 // ========================================================================
 // TODO: this is just for testing. should be deleted!
-var offset = 0.00005;
+var offset = 0.000005;
 var increment = offset;
 
 function drawFunctions(discretizationStep) {
@@ -134,7 +136,8 @@ function drawFunctions(discretizationStep) {
 
   function functionIteration(func, x, y, step) {
     context.beginPath();
-    context.lineWidth = 2;
+    context.lineWidth = 1;
+    context.strokeStyle = `#${(Math.PI * (x / y) + Math.sin(offset) / 50).toString(16).substring(2, 8)}`
     context.moveTo(x * gridSize, func(x, y) * gridSize);
     context.lineTo((x + step) * gridSize, func(x + step, y + step) * gridSize);
     context.stroke();
@@ -150,11 +153,11 @@ function calculateMouseRelativePositionInCanvas(e) {
 function draw() {
   context.clearRect(-xAxisGridOrigin * gridSize, -yAxisGridOrigin * gridSize, canvasWidth, canvasHeight);
 
-  drawAxis(xAxisGridLinesAmount, xAxisGridOrigin, true);
-  drawAxis(yAxisGridLinesAmount, yAxisGridOrigin, false);
+  drawAxis(yAxisGridLinesAmount, xAxisGridOrigin, true);
+  drawAxis(xAxisGridLinesAmount, yAxisGridOrigin, false);
   drawAxisTicks(xAxisGridOrigin, true);
   drawAxisTicks(yAxisGridOrigin, false);
-  drawFunctions(2);
+  drawFunctions(0.5);
   drawCrosshair();
 
   window.requestAnimationFrame(draw);
